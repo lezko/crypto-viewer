@@ -1,8 +1,95 @@
-.crypto-item {
-    display: flex;
-
+.app {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+    color: wheat;
+    padding-top: 30px;
 }
 
-.crypto-item > * + * {
-    margin-left: 10px;
+input {
+    background-color: inherit;
+    outline: 0;
+    padding: 5px;
+    margin-right: 10px;
+    color: inherit;
+    border: 2px solid wheat;
+}
+
+input::placeholder {
+    color: #a49b92;
+}
+
+button {
+    color: inherit;
+    background-color: inherit;
+    border: 2px solid wheat;
+    padding: 5px 15px;
+    outline: 0;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #395e5e;
+}
+
+button:focus {
+    border-color: #4683a9;
+}
+
+/* table header */
+
+.table-header {
+    color: #b7a78c;
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    padding: 5px 10px;
+    margin-top: 20px;
+}
+
+.table-header__name {
+    text-align: left;
+}
+
+.table-header__price {
+    text-align: left;
+}
+
+/* crypto-item */
+
+.crypto-item {
+    display: grid;
+    grid-template-columns: 220px 220px 1fr;
+    grid-template-areas: 'name price delete-btn';
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 10px;
+}
+
+.crypto-item__name {
+    grid-area: name;
+    text-align: left;
+}
+
+.crypto-item__price {
+    color: #938c80;
+    grid-area: price;
+    text-align: left;
+}
+
+.crypto-item.up .crypto-item__price {
+    color: #25982f;
+}
+
+.crypto-item.down .crypto-item__price {
+    color: #b04c16;
+}
+
+.crypto-item__delete-btn {
+    grid-area: delete-btn;
+    justify-self: end;
+    cursor: pointer;
+}
+
+.crypto-item:nth-child(odd) {
+    background-color: #3e5a5a;
 }

@@ -1,4 +1,7 @@
-import React, {Component} from 'react';
+import React from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faRemove} from '@fortawesome/free-solid-svg-icons';
+
 
 interface CryptoItemProps {
     name: string;
@@ -6,19 +9,25 @@ interface CryptoItemProps {
     change: number;
     onDelete: () => void;
 }
-class CryptoItem extends Component<CryptoItemProps> {
-    render() {
-        return (
-            <li className='crypto-item'>
-                <span>{this.props.name}</span>
-                <span>{this.props.price}</span>
-                <span>{this.props.change > 0 ? 'up' : this.props.change < 0 ? 'down' : ''}</span>
-                <button
-                    onClick={this.props.onDelete}
-                >Delete</button>
-            </li>
-        );
+
+const CryptoItem = (props: CryptoItemProps) => {
+    const classList = ['crypto-item'];
+    if (props.change > 0) {
+        classList.push('up');
+    } else if (props.change < 0) {
+        classList.push('down');
     }
+    return (
+        <li className={classList.join(' ')}>
+            <span className="crypto-item__name">{props.name}</span>
+            <span className="crypto-item__price">{props.price}</span>
+            <FontAwesomeIcon
+                className="crypto-item__delete-btn"
+                onClick={props.onDelete}
+                icon={faRemove}
+            />
+        </li>
+    );
 }
 
 export default CryptoItem;

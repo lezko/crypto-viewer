@@ -1,53 +1,42 @@
-import React, {Component} from 'react';
-import './App.css';
+import React, {useEffect, useState} from 'react';
 import CryptoItem from 'components/CryptoItem';
+import 'App.css';
 
-interface AppState {
-    cryptoList: string[];
-    cryptoInfo: {[name: string]: {price: number, change: number}};
-    inputValue: string;
-    timer: any
-}
+const App = () => {
 
-const key = 'key';
+    const [cryptoList, setCryptoList] = useState(['Dogecoin']);
+    const [shouldListUpdate, setShouldListUpdate] = useState(false);
+    const [cryptoInfo, setCryptoInfo] = useState<{[name: string]: {price: number, change: number}}>({});
+    const [inputValue, setInputValue] = useState('');
 
-class App extends Component<Readonly<{}>, AppState> {
-    constructor(props: AppState) {
-        super(props);
-        this.state = {
-            cryptoList: ['Dogecoin'],
-            cryptoInfo: {},
-            inputValue: '',
-            timer: null
-        };
-        // this.updateCrypto();
+    const updateInfo = () => {
+        fetchCrypto().then(newInfo => setCryptoInfo(newInfo));
     }
 
+    useEffect(() => {
+        const timer = setInterval(() => setShouldListUpdate(true), 5000);
+        return () => clearInterval(timer);
+    }, []);
 
-    componentDidMount() {
-        super.componentDidMount?.();
-        this.updateInfo();
-        this.setState({timer: setInterval(this.updateInfo, 5000)});
-    }
+    useEffect(() => {
+        if (shouldListUpdate) {
+            updateInfo();
+            setShouldListUpdate(false);
+        }
+    }, [shouldListUpdate]);
 
+    useEffect(() => {
+        updateInfo();
+    }, [cryptoList]);
 
-    componentWillUnmount() {
-        super.componentWillUnmount?.();
-        clearInterval(this.state.timer);
-    }
-
-    updateInfo = () => {
-        this.fetchCrypto().then(newInfo => this.setState({cryptoInfo: newInfo}));
-    }
-
-    fetchCrypto = async () => {
-        const newInfo: typeof this.state.cryptoInfo = {};
-        for (const name of this.state.cryptoList) {
-            await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${name}&tsyms=USD&api_key=${key}&gt`)
+    const fetchCrypto = async () => {
+        const newInfo: typeof cryptoInfo = {};
+        for (const name of cryptoList) {
+            await fetch(`/crypto/${name}`)
                 .then(res => res.json())
                 .then(data => {
                     const info = {price: data['USD'], change: 0};
-                    const prevInfo = this.state.cryptoInfo[name];
+                    const prevInfo = cryptoInfo[name];
                     if (prevInfo) {
                         info.change = info.price - prevInfo.price;
                     }
@@ -57,55 +46,60 @@ class App extends Component<Readonly<{}>, AppState> {
         return newInfo;
     }
 
-    handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        this.setState({inputValue: e.target.value});
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInputValue(e.target.value);
     }
 
-    handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        await fetch(`https://min-api.cryptocompare.com/data/price?fsym=${this.state.inputValue}&tsyms=USD&api_key=${key}&gt`)
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        const value = inputValue.toLowerCase();
+        if (cryptoList.includes(value)) {
+            return;
+        }
+        await fetch(`/crypto/${value}`)
             .then(res => res.json())
             .then(res => {
                 if (res?.Response !== 'Error') {
-                    this.setState(prevState => ({
-                        cryptoList: [...prevState.cryptoList, this.state.inputValue]
-                    }), this.updateInfo);
+                    setCryptoList(prevList => [...prevList, value]);
+                    setInputValue('');
                 }
             });
     }
 
-    handleDelete(name: string) {
-        this.setState(prevState => ({
-            cryptoList: prevState.cryptoList.filter(n => n !== name)
-        }), this.updateInfo);
+    const handleDelete = (name: string) => {
+        setCryptoList(prevList => prevList.filter(n => n !== name));
     }
 
-    render() {
-        return (
-            <div>
-                <input
-                    type="text"
-                    onChange={this.handleChange}
-                    value={this.state.inputValue}
-                />
-                <button
-                    onClick={this.handleClick}
-                >Add</button>
-                <ul>
-                    {
-                        Object.entries(this.state.cryptoInfo).map(([name, info]) => (
-                            <CryptoItem
-                                key={name}
-                                name={name}
-                                price={info.price}
-                                change={info.change}
-                                onDelete={() => this.handleDelete(name)}
-                            />
-                        ))
-                    }
-                </ul>
+    return (
+        <div className='app'>
+            <input
+                placeholder='search...'
+                type="text"
+                onChange={handleChange}
+                value={inputValue}
+            />
+            <button
+                onClick={handleClick}
+            >Add
+            </button>
+            <div className="table-header">
+                <span className="table-header__name">Name</span>
+                <span className="table-header__price">USD</span>
             </div>
-        );
-    }
+            <ul>
+                {
+                    Object.entries(cryptoInfo).map(([name, info]) => (
+                        <CryptoItem
+                            key={name}
+                            name={name}
+                            price={info.price}
+                            change={info.change}
+                            onDelete={() => handleDelete(name)}
+                        />
+                    ))
+                }
+            </ul>
+        </div>
+    );
 }
 
 export default App;
